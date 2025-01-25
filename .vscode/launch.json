@@ -1,0 +1,21 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            "console": "integratedTerminal",
+            "args": [ "-i", "sample1.png", "-o", "output.png", "-e", "https://eus.codesigning.azure.net/", "-c", "media-provenance-sign", "-a", "ts-3e3ebaf7f0a04bf192c7" ],
+            "env": {
+                "RUST_LOG": "trace",
+                "RUST_BACKTRACE": "full"
+            }
+        }
+    ]
+}
