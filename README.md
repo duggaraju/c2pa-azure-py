@@ -7,15 +7,15 @@ A Python project to use the c2pa Python library and Azure code signing service t
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/c2pa-azure-py.git
+    git clone https://github.com/duggaraju/c2pa-azure-py.git
     cd c2pa-azure-py
     ```
 
 2. Create a virtual environment and activate it:
 
     ```sh
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    python -m venv .venv
+    source .venv/bin/activate  # On Windows use `venv\Scripts\activate`
     ```
 
 3. Install the required dependencies:

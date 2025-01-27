@@ -23,7 +23,7 @@ from azure.core.exceptions import AzureError
 from azure.core.pipeline.transport import RequestsTransport
 
 class TrustedSigningSettings(object):
-    def __init__(self, certificate_profile, service_account, endpoint):
+    def __init__(self, certificate_profile, service_account, endpoint) -> None:
         self.certificate_profile = certificate_profile
         self.service_account = service_account
         self.endpoint = endpoint
@@ -39,11 +39,11 @@ class SigningRequest:
     
 class TrustedSigningClient(object):
 
-    def __init__(self, credential: TokenCredential, settings: TrustedSigningSettings, **kwargs):
+    def __init__(self, credential: TokenCredential, settings: TrustedSigningSettings, **kwargs) -> None:
         self.settings = settings
         self._pipeline = self._create_pipeline(credential, settings.endpoint, kwargs=kwargs)
 
-    def _create_pipeline(self, credential: TokenCredential, base_url=None, **kwargs):
+    def _create_pipeline(self, credential: TokenCredential, base_url=None, **kwargs) -> Pipeline:
         transport = kwargs.get('transport') or RequestsTransport(**kwargs)
 
         try:

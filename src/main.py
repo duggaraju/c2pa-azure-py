@@ -36,6 +36,7 @@ parser = argparse.ArgumentParser(description='This script does something.')
 parser.add_argument('-i', '--input', required=True, help='Path to the input file')
 parser.add_argument('-o', '--output', required=True, help='Path to the output file')
 parser.add_argument('-m', '--manifest', required=False, help='Path to the manifest file')
+parser.add_argument('-f', '--force', required=False, help='Force overwrite', default=True)
 group = parser.add_argument_group('Trustedsigning arguments')
 group.add_argument('-a', '--account', required=True, help='Trusted signing service account')
 group.add_argument('-e', '--endpoint', required=True, help='Trusted signing service endpoint')
@@ -57,6 +58,8 @@ else:
 credential = DefaultAzureCredential()
 settings = TrustedSigningSettings(args.certificate_profile, args.account, args.endpoint)
 try:
+    if args.force and os.path.exists(args.output):
+        os.remove(args.output)
     signer = AzureSigner(credential, settings, manifest)
     signer.sign(args.input, args.output)
 except Exception as e:

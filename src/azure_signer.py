@@ -1,4 +1,5 @@
 from logging import getLogger
+from typing import Self
 from c2pa import Builder, create_signer
 from io import BytesIO
 
@@ -10,7 +11,7 @@ from cryptography.hazmat.primitives.serialization import pkcs7
 logger = getLogger(__name__)
 
 class AzureSigner:
-    def __init__(self, credential: TokenCredential, settings: TrustedSigningSettings, manifest: str):
+    def __init__(self, credential: TokenCredential, settings: TrustedSigningSettings, manifest: str) -> None:
         self.builder = Builder(manifest)
         self.client = TrustedSigningClient(credential, settings)
         def sign(data:bytes) -> bytes:
@@ -22,7 +23,7 @@ class AzureSigner:
         self.signer = create_signer(sign, settings.algorithm, pem, "http://timestamp.acs.microsoft.com")
     
     @staticmethod
-    def sort_certificates(certs:list):
+    def sort_certificates(certs:list) -> list:
         sorted_certs = []
         for cert in certs:
             logger.debug(f"Certificate: Subject: ({cert.subject}) Isser: ({cert.issuer})")
@@ -52,5 +53,5 @@ class AzureSigner:
         return buffer.getvalue()
 
 
-    def sign(self, input, output):
+    def sign(self: Self, input: str, output: str) -> None:
         self.builder.sign_file(self.signer, input, output)
