@@ -30,9 +30,16 @@ python3 -m pip install ../c2pa-python
 ```
 ## Usage
 
-1. Configure your Azure code signing credentials in `config.json`.
-
-2. Run the script to add content credentials to your file:
+1. Configure your Azure code signing credentials in [manifest.json](src/manifest.json).
+2. Login into Azure using Azure CLI
+    ```bash
+    az login 
+    ```
+    If running in WSL.
+    ```bash
+    az login --use-device-code
+    ```
+3. Run the script to add content credentials to your file:
 
     ```sh
     python src/main.py -i <input> -o <output> -e <signing endpoint> -a <account> -c <certificate profile>

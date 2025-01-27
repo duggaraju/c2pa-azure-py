@@ -1,0 +1,20 @@
+{
+    "claim_generator_info": [{
+        "name": "Python Azure Signer",
+        "version": "0.1"
+    }],
+    "title": "Signed with Azure Trusted Signing",
+    "assertions": [
+    {
+            "label": "c2pa.training-mining",
+            "data": {
+                "entries": {
+                "c2pa.ai_generative_training": { "use": "notAllowed" },
+                "c2pa.ai_inference": { "use": "notAllowed" },
+                "c2pa.ai_training": { "use": "notAllowed" },
+                "c2pa.data_mining": { "use": "notAllowed" }
+                }
+            }
+        }
+    ]
+}

@@ -7,27 +7,8 @@ from azure.identity import DefaultAzureCredential
 from trusted_signing import TrustedSigningSettings
 from azure_signer import AzureSigner
 
+# Set the logging level
 logging.basicConfig(level=logging.WARNING)
-DEFAULT_MANIFEST = {
-    "claim_generator_info": [{
-        "name": "python test",
-        "version": "0.1"
-    }],
-    "title": "My Title",
-    "assertions": [
-    {
-            "label": "c2pa.training-mining",
-            "data": {
-                "entries": {
-                "c2pa.ai_generative_training": { "use": "notAllowed" },
-                "c2pa.ai_inference": { "use": "notAllowed" },
-                "c2pa.ai_training": { "use": "notAllowed" },
-                "c2pa.data_mining": { "use": "notAllowed" }
-                }
-            }
-        }
-    ]
-}
 
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description='This script does something.')
@@ -52,7 +33,9 @@ if args.manifest:
     else:
         manifest = args.manifest
 else:
-    manifest = DEFAULT_MANIFEST    
+    manifest_file = os.path.join(os.path.dirname(__file__), "manifest.json")    
+    with open(manifest_file, 'r') as f:
+        manifest = f.read()
 
 # Access the parsed arguments
 credential = DefaultAzureCredential()
