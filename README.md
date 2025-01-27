@@ -23,7 +23,11 @@ A Python project to use the c2pa Python library and Azure code signing service t
     ```sh
     pip install -r requirements.txt
     ```
-
+4. Tempoary workaround for bug in c2pa-pyton package. (Can be ignored once c2pa-python package 0.62.0 or above is released)
+```sh
+git clone https://github.com/contentauth/c2pa-pyton ../
+python3 -m pip install ../c2pa-python
+```
 ## Usage
 
 1. Configure your Azure code signing credentials in `config.json`.

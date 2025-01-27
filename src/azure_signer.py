@@ -26,7 +26,7 @@ class AzureSigner:
     def sort_certificates(certs:list) -> list:
         sorted_certs = []
         for cert in certs:
-            logger.debug(f"Certificate: Subject: ({cert.subject}) Isser: ({cert.issuer})")
+            # logger.debug(f"Certificate: Subject: ({cert.subject}) Isser: ({cert.issuer})")
             if cert.issuer == cert.subject:
                 sorted_certs.insert(0, cert)
                 continue
@@ -45,7 +45,7 @@ class AzureSigner:
         certs = pkcs7.load_der_pkcs7_certificates(p7b)
         sorted_certs = AzureSigner.sort_certificates(certs)
         for cert in sorted_certs:
-            logger.warning(f"Sorted Certificate: Subject = ({cert.subject}) Issuer= ({cert.issuer})")
+            # logger.debug(f"Sorted Certificate: Subject = ({cert.subject}) Issuer= ({cert.issuer})")
             pem = cert.public_bytes(encoding=serialization.Encoding.PEM)
             buffer.write(pem)
 
