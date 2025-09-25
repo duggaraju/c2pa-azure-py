@@ -3,8 +3,9 @@ import json
 from logging import getLogger
 from operator import itemgetter
 from time import sleep
+from typing import Optional
 from azure.core.pipeline import Pipeline
-from c2pa import SigningAlg
+from c2pa import C2paSigningAlg
 
 logger = getLogger(__name__)
 from azure.core.credentials import (TokenCredential)
@@ -23,12 +24,12 @@ from azure.core.exceptions import AzureError
 from azure.core.pipeline.transport import RequestsTransport
 
 class TrustedSigningSettings(object):
-    def __init__(self, certificate_profile, service_account, endpoint) -> None:
+    def __init__(self, certificate_profile, service_account, endpoint, c2pa_settings: Optional[str] = None) -> None:
         self.certificate_profile = certificate_profile
         self.service_account = service_account
         self.endpoint = endpoint
         self.version = "2022-06-15-preview"
-        self.algorithm = SigningAlg.PS384
+        self.algorithm = C2paSigningAlg.PS384
 
 class SigningRequest:
     def __init__(self, alg: str, digest: bytes):

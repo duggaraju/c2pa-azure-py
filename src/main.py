@@ -2,13 +2,13 @@ import argparse
 import logging
 import os
 import traceback
-from azure.identity import DefaultAzureCredential
+from azure.identity import AzureCliCredential
 
 from trusted_signing import TrustedSigningSettings
 from azure_signer import AzureSigner
 
 # Set the logging level
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description='This script does something.')
@@ -18,10 +18,12 @@ parser.add_argument('-i', '--input', required=True, help='Path to the input file
 parser.add_argument('-o', '--output', required=True, help='Path to the output file')
 parser.add_argument('-m', '--manifest', required=False, help='Path to the manifest file')
 parser.add_argument('-f', '--force', required=False, help='Force overwrite', default=True)
+parser.add_argument('-s', '--settings', required=False, help='Path to the C2PA settings file')
 group = parser.add_argument_group('Trustedsigning arguments')
 group.add_argument('-a', '--account', required=True, help='Trusted signing service account')
 group.add_argument('-e', '--endpoint', required=True, help='Trusted signing service endpoint')
 group.add_argument('-c', '--certificate-profile', required=True, help='Trusted signing certificate profile')
+
 
 # Parse the arguments
 args = parser.parse_args()
@@ -37,9 +39,15 @@ else:
     with open(manifest_file, 'r') as f:
         manifest = f.read()
 
+if args.settings and os.path.exists(args.settings):
+    with open(args.settings, 'r') as f:
+        c2pa_settings = f.read()
+else:
+    c2pa_settings = None
+
 # Access the parsed arguments
-credential = DefaultAzureCredential()
-settings = TrustedSigningSettings(args.certificate_profile, args.account, args.endpoint)
+credential = AzureCliCredential() # ManagedIdentityCredential()
+settings = TrustedSigningSettings(args.certificate_profile, args.account, args.endpoint, c2pa_settings)
 try:
     if args.force and os.path.exists(args.output):
         os.remove(args.output)

@@ -1,6 +1,6 @@
 from logging import getLogger
 from typing import Self
-from c2pa import Builder, create_signer
+from c2pa import Builder, Signer
 from io import BytesIO
 
 from trusted_signing import TrustedSigningClient, TrustedSigningSettings
@@ -20,13 +20,13 @@ class AzureSigner:
             return self.client.sign(digest.finalize())
         certs = self.client.get_certificate_chain()
         pem = AzureSigner.convert_p7b_to_pem(certs)
-        self.signer = create_signer(sign, settings.algorithm, pem, "http://timestamp.acs.microsoft.com")
-    
+        self.signer = Signer.from_callback(sign, settings.algorithm, pem, "http://timestamp.acs.microsoft.com")
+
     @staticmethod
     def sort_certificates(certs:list) -> list:
         sorted_certs = []
         for cert in certs:
-            # logger.debug(f"Certificate: Subject: ({cert.subject}) Isser: ({cert.issuer})")
+            logger.debug(f"Certificate: Subject: ({cert.subject}) Isser: ({cert.issuer})")
             if cert.issuer == cert.subject:
                 sorted_certs.insert(0, cert)
                 continue
@@ -44,7 +44,7 @@ class AzureSigner:
         buffer = BytesIO()
         certs = pkcs7.load_der_pkcs7_certificates(p7b)
         sorted_certs = AzureSigner.sort_certificates(certs)
-        for cert in sorted_certs:
+        for cert in sorted_certs[:-1]:
             # logger.debug(f"Sorted Certificate: Subject = ({cert.subject}) Issuer= ({cert.issuer})")
             pem = cert.public_bytes(encoding=serialization.Encoding.PEM)
             buffer.write(pem)
@@ -54,4 +54,4 @@ class AzureSigner:
 
 
     def sign(self: Self, input: str, output: str) -> None:
-        self.builder.sign_file(self.signer, input, output)
+        self.builder.sign_file(input, output, self.signer)
