@@ -30,6 +30,7 @@ class TrustedSigningSettings(object):
         self.endpoint = endpoint
         self.version = "2022-06-15-preview"
         self.algorithm = C2paSigningAlg.PS384
+        self.c2pa_settings = c2pa_settings
 
 class SigningRequest:
     def __init__(self, alg: str, digest: bytes):
@@ -37,7 +38,7 @@ class SigningRequest:
         self.digest = base64.b64encode(digest).decode('utf-8')
     def __repr__(self) -> str:
         return json.dumps(self.__dict__)[:1024]
-    
+
 class TrustedSigningClient(object):
 
     def __init__(self, credential: TokenCredential, settings: TrustedSigningSettings, **kwargs) -> None:
@@ -69,13 +70,13 @@ class TrustedSigningClient(object):
             ]
 
         return Pipeline(transport, policies)
-    
+
     def get_certificate_chain(self) -> bytes:
         url = f'{self.settings.endpoint}codesigningaccounts/{self.settings.service_account}/certificateprofiles/{self.settings.certificate_profile}/sign/certchain?api-version={self.settings.version}'
-        request = HttpRequest("GET", url, headers = {"accept": "application/pkcs7-mime"})
+        request = HttpRequest("GET", url, headers = {"accept": "application/pkcs7-mime, application/x-x509-ca-cert, application/json"})
         response = self._pipeline.run(request)
         p7b = response.http_response.read()
-        return p7b    
+        return p7b
 
     def sign(self, digest: bytes) -> bytes:
         url = f'{self.settings.endpoint}codesigningaccounts/{self.settings.service_account}/certificateprofiles/{self.settings.certificate_profile}/sign?api-version={self.settings.version}'
@@ -89,7 +90,7 @@ class TrustedSigningClient(object):
             request = HttpRequest("GET", url)
             response = self._pipeline.run(request)
             result = response.http_response.json()
-        
+
         if result["status"] == 'Succeeded':
             return base64.b64decode(result["signature"])
 

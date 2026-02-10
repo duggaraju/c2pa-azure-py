@@ -8,7 +8,7 @@ from trusted_signing import TrustedSigningSettings
 from azure_signer import AzureSigner
 
 # Set the logging level
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description='This script does something.')
@@ -35,7 +35,7 @@ if args.manifest:
     else:
         manifest = args.manifest
 else:
-    manifest_file = os.path.join(os.path.dirname(__file__), "manifest.json")    
+    manifest_file = os.path.join(os.path.dirname(__file__), "manifest.json")
     with open(manifest_file, 'r') as f:
         manifest = f.read()
 
