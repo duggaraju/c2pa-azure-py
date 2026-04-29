@@ -1,0 +1,72 @@
+import argparse
+import logging
+import os
+import sys
+import traceback
+from importlib.resources import files
+from typing import Optional, Sequence
+
+from azure.identity import DefaultAzureCredential
+
+from .signer import AzureSigner
+from .trusted_signing import TrustedSigningSettings
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="c2pa-azure-sign",
+        description="Sign a file with a C2PA manifest using Azure Trusted Signing.",
+    )
+    parser.add_argument("-i", "--input", required=True, help="Path to the input file")
+    parser.add_argument("-o", "--output", required=True, help="Path to the output file")
+    parser.add_argument("-m", "--manifest", required=False, help="Path to the manifest file or inline manifest JSON")
+    parser.add_argument("-f", "--force", action="store_true", default=True, help="Force overwrite of the output file")
+    parser.add_argument("-s", "--settings", required=False, help="Path to the C2PA settings file (TOML)")
+    group = parser.add_argument_group("Trusted Signing arguments")
+    group.add_argument("-a", "--account", required=True, help="Trusted Signing service account")
+    group.add_argument("-e", "--endpoint", required=True, help="Trusted Signing service endpoint")
+    group.add_argument("-c", "--certificate-profile", required=True, help="Trusted Signing certificate profile")
+    return parser
+
+
+def _load_manifest(manifest_arg: Optional[str]) -> str:
+    if manifest_arg:
+        if os.path.exists(manifest_arg):
+            with open(manifest_arg, "r") as f:
+                return f.read()
+        return manifest_arg
+    return files("c2pa_azure.data").joinpath("manifest.json").read_text()
+
+
+def _load_c2pa_settings(settings_arg: Optional[str]) -> Optional[str]:
+    if settings_arg and os.path.exists(settings_arg):
+        with open(settings_arg, "r") as f:
+            return f.read()
+    return None
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    logging.basicConfig(level=logging.ERROR)
+    args = _build_parser().parse_args(argv)
+
+    manifest = _load_manifest(args.manifest)
+    c2pa_settings = _load_c2pa_settings(args.settings)
+
+    credential = DefaultAzureCredential()
+    settings = TrustedSigningSettings(
+        args.certificate_profile, args.account, args.endpoint, c2pa_settings
+    )
+
+    try:
+        if args.force and os.path.exists(args.output):
+            os.remove(args.output)
+        signer = AzureSigner(credential, settings, manifest)
+        signer.sign(args.input, args.output)
+    except Exception:
+        print(traceback.format_exc(), file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

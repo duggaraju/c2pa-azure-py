@@ -1,21 +1,10 @@
-# Use a Python base image
-FROM python
+FROM python:3.12-slim
 
-# Set the working directory
 WORKDIR /app
 
-# Create a virtual environment
-RUN python -m venv .venv
+COPY pyproject.toml README.md LICENSE ./
+COPY src ./src
 
-# Activate the virtual environment
-ENV PATH="/app/.venv/bin:$PATH"
+RUN pip install --no-cache-dir .
 
-# Copy requirements.txt and install dependencies
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-
-# Copy the rest of your application code
-COPY . .
-
-# Run your application
-CMD ["python", "src/main.py"]
+ENTRYPOINT ["c2pa-azure-sign"]

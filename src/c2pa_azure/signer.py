@@ -3,7 +3,7 @@ from typing import Self
 from c2pa import Builder, Signer, load_settings
 from io import BytesIO
 
-from trusted_signing import TrustedSigningClient, TrustedSigningSettings
+from .trusted_signing import TrustedSigningClient, TrustedSigningSettings
 from azure.core.credentials import TokenCredential
 from cryptography.hazmat.primitives import hashes
 from asn1crypto import cms, pem

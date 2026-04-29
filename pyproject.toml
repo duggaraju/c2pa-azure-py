@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "c2pa-azure"
+version = "0.32.3.1"
+description = "Sign C2PA manifests using Azure Trusted Signing."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [{ name = "c2pa-azure-py contributors" }]
+keywords = ["c2pa", "azure", "trusted-signing", "code-signing", "provenance"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "azure-core>=1.38",
+    "azure-identity>=1.25",
+    "asn1crypto>=1.5",
+    "c2pa-python>=0.32,<0.33",
+    "cryptography>=47",
+    "requests>=2.32",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "build", "ruff"]
+
+[project.scripts]
+c2pa-azure-sign = "c2pa_azure.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/duggaraju/c2pa-azure-py"
+Source = "https://github.com/duggaraju/c2pa-azure-py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/c2pa_azure"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/c2pa_azure",
+    "README.md",
+    "LICENSE",
+]
