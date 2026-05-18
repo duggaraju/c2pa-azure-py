@@ -7,9 +7,10 @@ from importlib.resources import files
 from typing import Optional, Sequence
 
 from azure.identity import DefaultAzureCredential
+from c2pa import Builder, ContextBuilder, Settings
 
 from .signer import AzureSigner
-from .trusted_signing import TrustedSigningSettings
+from .trusted_signing import TrustedSigningClient, TrustedSigningSettings
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -38,34 +39,35 @@ def _load_manifest(manifest_arg: Optional[str]) -> str:
     return files("c2pa_azure.data").joinpath("manifest.json").read_text()
 
 
-def _load_c2pa_settings(settings_arg: Optional[str]) -> Optional[str]:
+def _load_c2pa_settings(settings_arg: Optional[str]) -> str:
     if settings_arg and os.path.exists(settings_arg):
         with open(settings_arg, "r") as f:
             return f.read()
-    return None
+    return files("c2pa_azure.data").joinpath("settings.json").read_text()
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    logging.basicConfig(level=logging.ERROR)
+    logging.basicConfig(level=logging.WARN)
     args = _build_parser().parse_args(argv)
 
-    manifest = _load_manifest(args.manifest)
+    settings = Settings()
     c2pa_settings = _load_c2pa_settings(args.settings)
+    settings.update(c2pa_settings)
+
+    context = ContextBuilder().with_settings(settings).build()
+    manifest = _load_manifest(args.manifest)
+    builder = Builder(manifest, context)
+
 
     credential = DefaultAzureCredential()
     settings = TrustedSigningSettings(
-        args.certificate_profile, args.account, args.endpoint, c2pa_settings
-    )
+        args.certificate_profile, args.account, args.endpoint)
+    client = TrustedSigningClient(credential, settings)
 
-    try:
-        if args.force and os.path.exists(args.output):
-            os.remove(args.output)
-        signer = AzureSigner(credential, settings, manifest)
-        signer.sign(args.input, args.output)
-    except Exception:
-        print(traceback.format_exc(), file=sys.stderr)
-        return 1
-    return 0
+    if args.force and os.path.exists(args.output):
+        os.remove(args.output)
+    signer = AzureSigner(client)
+    builder.sign_file(args.input, args.output, signer.signer)
 
 
 if __name__ == "__main__":

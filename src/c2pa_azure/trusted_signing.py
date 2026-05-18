@@ -24,13 +24,11 @@ from azure.core.exceptions import AzureError
 from azure.core.pipeline.transport import RequestsTransport
 
 class TrustedSigningSettings(object):
-    def __init__(self, certificate_profile, service_account, endpoint, c2pa_settings: Optional[str] = None) -> None:
+    def __init__(self, certificate_profile, service_account, endpoint) -> None:
         self.certificate_profile = certificate_profile
         self.service_account = service_account
         self.endpoint = endpoint
         self.version = "2022-06-15-preview"
-        self.algorithm = C2paSigningAlg.PS384
-        self.c2pa_settings = c2pa_settings
 
 class SigningRequest:
     def __init__(self, alg: str, digest: bytes):

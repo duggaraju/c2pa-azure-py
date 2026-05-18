@@ -5,11 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Current File",
+            "name": "Python Debugger: c2pa-azure CLI",
             "type": "debugpy",
             "request": "launch",
             "python": "${workspaceFolder}/.venv/bin/python",
-            "program": "${workspaceFolder}/src/main.py",
+            "module": "c2pa_azure",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "args": [
                 "-i", "sample1.png",
@@ -17,11 +18,11 @@
                 "-e", "https://eus.codesigning.azure.net/",
                 "-c", "rai-poc-provenance-sign",
                 "-a", "rai-provenance-sign",
-                "-s", "settings.toml"
+                // "-s", "settings.json"
             ],
             "env": {
-                "RUST_LOG": "trace",
-                "RUST_BACKTRACE": "full"
+                // "RUST_LOG": "debug",
+                // "RUST_BACKTRACE": "full"
             }
         }
     ]

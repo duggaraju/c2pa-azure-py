@@ -157,7 +157,7 @@ src/c2pa_azure/
 ├── cli.py               # argparse entry point (c2pa-azure-sign)
 ├── signer.py            # AzureSigner
 ├── trusted_signing.py   # TrustedSigningClient + TrustedSigningSettings
-└── data/                # bundled manifest.json and settings.toml
+└── data/                # bundled manifest.json and settings.json
 ```
 
 ## Development
