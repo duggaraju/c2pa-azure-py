@@ -50,24 +50,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     logging.basicConfig(level=logging.WARN)
     args = _build_parser().parse_args(argv)
 
-    settings = Settings()
-    c2pa_settings = _load_c2pa_settings(args.settings)
-    settings.update(c2pa_settings)
-
-    context = ContextBuilder().with_settings(settings).build()
-    manifest = _load_manifest(args.manifest)
-    builder = Builder(manifest, context)
-
-
     credential = DefaultAzureCredential()
     settings = TrustedSigningSettings(
         args.certificate_profile, args.account, args.endpoint)
     client = TrustedSigningClient(credential, settings)
+    azure_signer = AzureSigner(client)
+    signer = azure_signer.to_c2pa_signer()
+
+    settings = Settings()
+    c2pa_settings = _load_c2pa_settings(args.settings)
+    settings.update(c2pa_settings)
+    context = ContextBuilder().with_settings(settings).with_signer(signer).build()
+    manifest = _load_manifest(args.manifest)
+    builder = Builder(manifest, context)
+
+
 
     if args.force and os.path.exists(args.output):
         os.remove(args.output)
-    signer = AzureSigner(client)
-    builder.sign_file(args.input, args.output, signer.signer)
+    builder.sign_file(args.input, args.output)
 
 
 if __name__ == "__main__":

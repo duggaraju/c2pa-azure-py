@@ -69,7 +69,8 @@ Optional flags:
 
 ```python
 from azure.identity import DefaultAzureCredential
-from c2pa_azure import AzureSigner, TrustedSigningSettings
+from c2pa import Builder, ContextBuilder
+from c2pa_azure import AzureSigner, TrustedSigningClient, TrustedSigningSettings
 
 credential = DefaultAzureCredential()
 
@@ -77,9 +78,10 @@ settings = TrustedSigningSettings(
     certificate_profile="my-cert-profile",
     service_account="my-trusted-signing-account",
     endpoint="https://eus.codesigning.azure.net/",
-    # Optional: TOML-formatted C2PA settings string. None = library defaults.
-    c2pa_settings=None,
 )
+client = TrustedSigningClient(credential, settings)
+azure_signer = AzureSigner(client)
+signer = azure_signer.to_c2pa_signer()
 
 manifest = """
 {
@@ -92,9 +94,10 @@ manifest = """
   ]
 }
 """
+context = ContextBuilder().with_signer(signer).build()
 
-signer = AzureSigner(credential, settings, manifest)
-signer.sign("input.jpg", "output.jpg")
+builder = Builder(manifest, context)
+builder.sign_file("input.jpg", "output.jpg")
 ```
 
 ### Loading the bundled manifest
@@ -116,9 +119,10 @@ settings = TrustedSigningSettings(
     "profile", "account", "https://eus.codesigning.azure.net/"
 )
 client = TrustedSigningClient(DefaultAzureCredential(), settings)
+azure_signer = AzureSigner(client)
 
 cert_chain_p7b = client.get_certificate_chain()
-signature = client.sign(b"<sha384 digest bytes>")
+signature = azure_signer(b"<data to hash and sign>")
 ```
 
 ### Invoking the CLI from Python
@@ -166,6 +170,38 @@ src/c2pa_azure/
 pip install -e ".[dev]"
 pytest
 python -m build           # produces dist/*.whl and dist/*.tar.gz
+```
+
+### Load local module in editable mode (debugging)
+
+When debugging changes in `src/c2pa_azure`, install this repo in editable mode so imports resolve to your local source tree:
+
+```sh
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+python -c "import c2pa_azure; print(c2pa_azure.__file__)"
+```
+
+The printed path should point to this checkout (not a site-packages wheel install).
+
+### Release a new Python package version
+
+1. Update the version in `pyproject.toml` and `src/c2pa_azure/__init__.py`.
+2. Build artifacts:
+
+```sh
+python -m pip install -U build twine
+python -m build
+python -m twine check dist/*
+```
+
+3. Publish to TestPyPI (recommended first), then PyPI:
+
+```sh
+python -m twine upload --repository testpypi dist/*
+# after validating install/import from TestPyPI:
+python -m twine upload dist/*
 ```
 
 ## License

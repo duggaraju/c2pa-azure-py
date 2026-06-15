@@ -1,13 +1,15 @@
 from logging import getLogger
-from typing import Optional, Self
-from c2pa import Signer, C2paSigningAlg
+from typing import Optional
+from c2pa import C2paSigningAlg, Signer
 from io import BytesIO
+import warnings
 
 from .trusted_signing import TrustedSigningClient
 from cryptography.hazmat.primitives import hashes
 from asn1crypto import cms, pem, x509
 
 logger = getLogger(__name__)
+DEFAULT_TIMESTAMP_URL = "http://timestamp.acs.microsoft.com"
 
 # Hash algorithm to use when computing the digest sent to Trusted Signing,
 # keyed by the C2PA signing algorithm derived from the leaf certificate.
@@ -37,15 +39,17 @@ class AzureSigner:
         # Override the placeholder algorithm in settings so the REST call to
         # Trusted Signing requests the matching signature algorithm.
         self.client.settings.algorithm = alg
-        hash_cls = _ALG_TO_HASH[alg]
+        self.algorithm = alg
+        self.hash_cls = _ALG_TO_HASH[alg]
+        self.cert_chain_pem = AzureSigner._certs_to_pem(sorted_certs)
 
-        def sign(data: bytes) -> bytes:
-            digest = hashes.Hash(hash_cls())
-            digest.update(data)
-            return self.client.sign(digest.finalize())
+    def __call__(self, data: bytes) -> bytes:
+        digest = hashes.Hash(self.hash_cls())
+        digest.update(data)
+        return self.client.sign(digest.finalize())
 
-        cert_chain_pem = AzureSigner._certs_to_pem(sorted_certs)
-        self.signer = Signer.from_callback(sign, alg, cert_chain_pem, "http://timestamp.acs.microsoft.com")
+    def to_c2pa_signer(self, timestamp_url: str = DEFAULT_TIMESTAMP_URL) -> Signer:
+        return Signer.from_callback(self, self.algorithm, self.cert_chain_pem, timestamp_url)
 
     @staticmethod
     def infer_signing_algorithm(leaf: x509.Certificate) -> C2paSigningAlg:

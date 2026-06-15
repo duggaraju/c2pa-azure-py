@@ -3,4 +3,4 @@ from .signer import AzureSigner
 from .trusted_signing import TrustedSigningClient, TrustedSigningSettings
 
 __all__ = ["AzureSigner", "TrustedSigningClient", "TrustedSigningSettings"]
-__version__ = "0.32.6.0"
+__version__ = "0.34.0.1"

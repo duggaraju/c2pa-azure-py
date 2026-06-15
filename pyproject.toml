@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "c2pa-azure"
-version = "0.32.6.0"
+version = "0.34.0.1"
 description = "Sign C2PA manifests using Azure Trusted Signing."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -20,11 +20,11 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "azure-core>=1.38",
+    "azure-core>=1.41",
     "azure-identity>=1.25",
     "asn1crypto>=1.5",
-    "c2pa-python>=0.32,<0.33",
-    "cryptography>=48",
+    "c2pa-python>=0.34,<0.35",
+    "cryptography>=49",
     "requests>=2.32",
 ]
 
