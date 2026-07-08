@@ -1,7 +1,7 @@
 azure-core==1.41.0
 azure-identity==1.25.3
 asn1crypto==1.5.1
-c2pa-python==0.34.0
+c2pa-python==0.36.0
 certifi==2026.5.20
 cffi==2.0.0
 charset-normalizer==3.4.4
