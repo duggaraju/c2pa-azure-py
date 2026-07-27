@@ -21,6 +21,7 @@
                 // "-s", "settings.json"
             ],
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
                 // "RUST_LOG": "debug",
                 // "RUST_BACKTRACE": "full"
             }
