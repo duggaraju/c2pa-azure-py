@@ -188,21 +188,13 @@ The printed path should point to this checkout (not a site-packages wheel instal
 ### Release a new Python package version
 
 1. Update the version in `pyproject.toml` and `src/c2pa_azure/__init__.py`.
-2. Build artifacts:
+2. Merge the change into `master` and confirm the Build workflow succeeds.
+3. Create and publish a GitHub Release with a matching tag, such as `v0.37.7`.
 
-```sh
-python -m pip install -U build twine
-python -m build
-python -m twine check dist/*
-```
-
-3. Publish to TestPyPI (recommended first), then PyPI:
-
-```sh
-python -m twine upload --repository testpypi dist/*
-# after validating install/import from TestPyPI:
-python -m twine upload dist/*
-```
+The Release workflow verifies that the tag and both package version declarations
+match, builds and validates the distributions, and publishes them to PyPI using
+trusted publishing. Configure a PyPI trusted publisher for the `pypi` GitHub
+environment before publishing the first release.
 
 ## License
 

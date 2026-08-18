@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build distributions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Verify release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          import tomllib
+          from pathlib import Path
+
+          tag = os.environ["RELEASE_TAG"]
+          match = re.fullmatch(r"v?(\d+\.\d+\.\d+)", tag)
+          if not match:
+              raise SystemExit(f"Release tag must look like v1.2.3, got {tag!r}")
+
+          version = match.group(1)
+          project = tomllib.loads(Path("pyproject.toml").read_text())
+          package_version = project["project"]["version"]
+          init_text = Path("src/c2pa_azure/__init__.py").read_text()
+          init_match = re.search(r'^__version__ = "([^"]+)"$', init_text, re.MULTILINE)
+          init_version = init_match.group(1) if init_match else None
+
+          if package_version != version or init_version != version:
+              raise SystemExit(
+                  f"Tag {tag!r}, project version {package_version!r}, and "
+                  f"__version__ {init_version!r} must match"
+              )
+          PY
+
+      - name: Install build tools
+        run: python -m pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Validate distributions
+        run: python -m twine check dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/c2pa-azure
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
