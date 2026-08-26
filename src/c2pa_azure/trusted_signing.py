@@ -92,4 +92,4 @@ class TrustedSigningClient(object):
         if result["status"] == 'Succeeded':
             return base64.b64decode(result["signature"])
 
-        raise AzureError(f"Signing failed: for operation Id: {result["operationId"]} Status: {result["status"]}")
+        raise AzureError(f"Signing failed: for operation Id: {result['operationId']} Status: {result['status']}")
