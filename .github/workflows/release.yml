@@ -3,13 +3,109 @@ name: Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - requirements.txt
+      - pyproject.toml
+      - src/c2pa_azure/__init__.py
 
 permissions:
   contents: read
 
 jobs:
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.release.outputs.publish }}
+      version: ${{ steps.release.outputs.version }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Determine release version
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          import subprocess
+          import tomllib
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          output = Path(os.environ["GITHUB_OUTPUT"])
+          project = tomllib.loads(Path("pyproject.toml").read_text())
+          version = project["project"]["version"]
+
+          def c2pa_version(text):
+              match = re.search(r"^c2pa-python==([^;\s]+)", text, re.MULTILINE)
+              return match.group(1) if match else None
+
+          current_c2pa = c2pa_version(Path("requirements.txt").read_text())
+          event_name = os.environ["EVENT_NAME"]
+          if event_name == "release":
+              tag = os.environ["RELEASE_TAG"]
+              if tag not in {version, f"v{version}"}:
+                  raise SystemExit(
+                      f"Release tag {tag!r} must match package version {version!r}"
+                  )
+              publish = True
+          elif event_name == "workflow_dispatch":
+              publish = True
+          else:
+              before = os.environ["BEFORE_SHA"]
+              try:
+                  old_requirements = subprocess.check_output(
+                      ["git", "show", f"{before}:requirements.txt"], text=True
+                  )
+                  old_pyproject = subprocess.check_output(
+                      ["git", "show", f"{before}:pyproject.toml"], text=True
+                  )
+                  old_version = tomllib.loads(old_pyproject)["project"]["version"]
+                  dependency_changed = c2pa_version(old_requirements) != current_c2pa
+                  package_changed = old_version != version
+              except subprocess.CalledProcessError:
+                  dependency_changed = package_changed = True
+
+              publish = dependency_changed or package_changed
+
+          if publish:
+              try:
+                  urllib.request.urlopen(
+                      f"https://pypi.org/pypi/c2pa-azure/{version}/json",
+                      timeout=10,
+                  )
+              except urllib.error.HTTPError as error:
+                  if error.code != 404:
+                      raise
+              else:
+                  print(f"c2pa-azure {version} is already on PyPI; skipping")
+                  publish = False
+
+          with output.open("a") as stream:
+              print(f"publish={str(publish).lower()}", file=stream)
+              print(f"version={version}", file=stream)
+          PY
+
+      - name: Verify synchronized versions
+        if: steps.release.outputs.publish == 'true'
+        run: python scripts/sync_c2pa_version.py --check
+
   build:
     name: Build distributions
+    needs: prepare
+    if: needs.prepare.outputs.publish == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -21,35 +117,6 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-
-      - name: Verify release version
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: |
-          python - <<'PY'
-          import os
-          import re
-          import tomllib
-          from pathlib import Path
-
-          tag = os.environ["RELEASE_TAG"]
-          match = re.fullmatch(r"v?(\d+\.\d+\.\d+)", tag)
-          if not match:
-              raise SystemExit(f"Release tag must look like v1.2.3, got {tag!r}")
-
-          version = match.group(1)
-          project = tomllib.loads(Path("pyproject.toml").read_text())
-          package_version = project["project"]["version"]
-          init_text = Path("src/c2pa_azure/__init__.py").read_text()
-          init_match = re.search(r'^__version__ = "([^"]+)"$', init_text, re.MULTILINE)
-          init_version = init_match.group(1) if init_match else None
-
-          if package_version != version or init_version != version:
-              raise SystemExit(
-                  f"Tag {tag!r}, project version {package_version!r}, and "
-                  f"__version__ {init_version!r} must match"
-              )
-          PY
 
       - name: Install build tools
         run: python -m pip install build twine
@@ -63,13 +130,13 @@ jobs:
       - name: Upload distributions
         uses: actions/upload-artifact@v7
         with:
-          name: python-package-distributions
+          name: python-package-distributions-${{ needs.prepare.outputs.version }}
           path: dist/
           if-no-files-found: error
 
   publish:
     name: Publish to PyPI
-    needs: build
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -81,8 +148,23 @@ jobs:
       - name: Download distributions
         uses: actions/download-artifact@v8
         with:
-          name: python-package-distributions
+          name: python-package-distributions-${{ needs.prepare.outputs.version }}
           path: dist/
 
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: Create GitHub release
+    needs: [prepare, publish]
+    if: github.event_name != 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: gh release create "v${VERSION}" --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" --generate-notes

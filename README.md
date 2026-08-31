@@ -187,14 +187,16 @@ The printed path should point to this checkout (not a site-packages wheel instal
 
 ### Release a new Python package version
 
-1. Update the version in `pyproject.toml` and `src/c2pa_azure/__init__.py`.
-2. Merge the change into `master` and confirm the Build workflow succeeds.
-3. Create and publish a GitHub Release with a matching tag, such as `v0.37.7`.
+Dependabot opens `c2pa-python` updates separately. Its pull-request workflow
+copies the pinned dependency version from `requirements.txt` to the project
+version, `__version__`, and the package's minimum `c2pa-python` requirement.
+After that pull request is merged into `master`, the Release workflow builds the
+distributions, publishes them to PyPI, and creates the matching GitHub Release.
 
-The Release workflow verifies that the tag and both package version declarations
-match, builds and validates the distributions, and publishes them to PyPI using
-trusted publishing. Configure a PyPI trusted publisher for the `pypi` GitHub
-environment before publishing the first release.
+The workflow verifies all version declarations before publishing. Configure a
+PyPI trusted publisher for `.github/workflows/release.yml` and the `pypi` GitHub
+environment before the first automatic release. A matching manually published
+GitHub Release remains supported for recovery or one-off releases.
 
 ## License
 

@@ -9,9 +9,14 @@ updates:
       timezone: Etc/UTC
     open-pull-requests-limit: 10
     groups:
+      c2pa-python:
+        patterns:
+          - "c2pa-python"
       python-dependencies:
         patterns:
           - "*"
+        exclude-patterns:
+          - "c2pa-python"
 
   - package-ecosystem: github-actions
     directory: /
