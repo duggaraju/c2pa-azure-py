@@ -12,6 +12,7 @@ ROOT = Path(os.environ.get("C2PA_SYNC_ROOT", Path(__file__).resolve().parents[1]
 REQUIREMENTS = ROOT / "requirements.txt"
 PYPROJECT = ROOT / "pyproject.toml"
 INIT = ROOT / "src/c2pa_azure/__init__.py"
+README = ROOT / "README.md"
 
 VERSION_PATTERN = r"\d+\.\d+\.\d+(?:[a-zA-Z0-9.+-]*)?"
 
@@ -68,7 +69,19 @@ def synced_contents(version: str) -> dict[Path, str]:
         f'__version__ = "{version}"',
         "src/c2pa_azure/__init__.py",
     )
-    return {PYPROJECT: pyproject, INIT: init}
+    readme = replace_once(
+        README.read_text(),
+        rf"(img\.shields\.io/badge/c2pa--python-){VERSION_PATTERN}(-blue\.svg)",
+        rf"\g<1>{version}\g<2>",
+        "README.md",
+    )
+    readme = replace_once(
+        readme,
+        rf"(pypi\.org/project/c2pa-python/){VERSION_PATTERN}(/)",
+        rf"\g<1>{version}\g<2>",
+        "README.md",
+    )
+    return {PYPROJECT: pyproject, INIT: init, README: readme}
 
 
 def main() -> None:
