@@ -1,7 +1,7 @@
 # c2pa-azure-py
 
 [![PyPI version](https://img.shields.io/pypi/v/c2pa-azure.svg)](https://pypi.org/project/c2pa-azure/)
-[![c2pa-python version](https://img.shields.io/badge/c2pa--python-0.37.12-blue.svg)](https://pypi.org/project/c2pa-python/0.37.12/)
+[![c2pa-python version](https://img.shields.io/badge/c2pa--python-0.38.0-blue.svg)](https://pypi.org/project/c2pa-python/0.38.0/)
 
 Sign files with [C2PA](https://c2pa.org) content credentials using the
 [Azure Trusted Signing](https://learn.microsoft.com/azure/trusted-signing/) service.
