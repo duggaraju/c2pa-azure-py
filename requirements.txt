@@ -1,5 +1,5 @@
 azure-core==1.41.0
-azure-identity==1.26.0
+azure-identity==1.27.0
 asn1crypto==1.5.1
 c2pa-python==0.38.1
 certifi==2026.10.23
