@@ -4,7 +4,7 @@ asn1crypto==1.5.1
 c2pa-python==0.39.0
 certifi==2026.11.20
 cffi==2.1.1
-charset-normalizer==3.5.2
+charset-normalizer==3.5.3
 cryptography==50.0.2
 idna==3.20
 logging==0.4.9.6
